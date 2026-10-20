@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>결석신고서 – 학생·학부모 작성</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#1d2330;--mut:#6b7280;--ac:#2f5bd8;--bd:#d9dde5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1d222b;--tx:#e8ebf0;--mut:#98a1b0;--ac:#6f93ff;--bd:#323946}}
+:root[data-theme="dark"]{--bg:#14171d;--card:#1d222b;--tx:#e8ebf0;--mut:#98a1b0;--ac:#6f93ff;--bd:#323946}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+h1{font-size:20px;margin:0 0 4px}p.s{margin:0 0 14px;color:var(--mut);font-size:13px;line-height:1.5}
+label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
+input,textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:16px}
+.r{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{padding:12px 16px;border:0;border-radius:8px;background:var(--ac);color:#fff;font:inherit;font-size:15px;cursor:pointer;width:100%}
+button.g{background:transparent;color:var(--mut);border:1px solid var(--bd);margin-top:6px;padding:8px}
+.pad{width:100%;touch-action:none;background:#fff;border:1px dashed var(--bd);border-radius:8px;cursor:crosshair;display:block}
+#msg{color:#c0392b;font-size:13px;margin:8px 0 0}
+.ex{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.ex button{width:auto;padding:6px 10px;font-size:13px;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+</style></head><body><div class="wrap">
+<h1>결석신고서 – 학생·학부모 작성</h1>
+<p class="s">아래 내용을 쓰고 서명한 뒤 <b>선생님께 카톡으로 보내기</b>를 누르세요. 공유창이 뜨면 카카오톡을 골라 담임선생님께 보내면 됩니다. 입력한 내용은 이 기기에서만 처리돼요.</p>
+<div class="card">
+<div class="r"><div><label>학번</label><input id="sid" inputmode="numeric"></div><div><label>성명</label><input id="sname"></div></div>
+<label>연락처(전화)</label><input id="tel" inputmode="tel" placeholder="010-0000-0000">
+<div class="r"><div><label>결석 시작일</label><input type="date" id="d1"></div><div><label>결석 종료일</label><input type="date" id="d2"></div></div>
+<label>결석 사유</label><textarea id="why" rows="2"></textarea>
+<p class="s" style="margin:6px 0 0">예) 감기 몸살로 인한 병원 진료<br>예) 생리통으로 인한 결석</p>
+<div class="r"><div><label>학생 이름</label><input id="stu"></div><div><label>학부모 이름</label><input id="par"></div></div>
+<label>학생 손글씨 서명</label><canvas class="pad" id="pad_stu" width="400" height="150"></canvas><button class="g" id="clr_stu" type="button">지우기</button>
+<label>학부모 손글씨 서명</label><canvas class="pad" id="pad_par" width="400" height="150"></canvas><button class="g" id="clr_par" type="button">지우기</button>
+</div>
+<button id="go" type="button">선생님께 카톡으로 보내기</button><p id="msg"></p>
+<div class="card" id="res" hidden style="margin-top:16px"><p class="s">아래 코드를 전체 복사해서 담임선생님께 보내 주세요.</p>
+<textarea id="out" rows="5" readonly></textarea><button id="cp" type="button" style="margin-top:8px">코드 복사</button></div>
+</div>
+<script>
+const $=id=>document.getElementById(id),SIG={stu:[],par:[]};
+const msg=t=>{$('msg').textContent=t};
+function pad(k){const c=$('pad_'+k),x=c.getContext('2d');let cur=null;
+ const pos=e=>{const r=c.getBoundingClientRect();return[Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))]};
+ const redraw=()=>{x.clearRect(0,0,c.width,c.height);x.strokeStyle='#000';x.lineWidth=4;x.lineCap=x.lineJoin='round';
+  SIG[k].forEach(st=>{x.beginPath();st.forEach((p,i)=>{const px=p[0]*c.width,py=p[1]*c.height;i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke()})};
+ c.onpointerdown=e=>{e.preventDefault();c.setPointerCapture(e.pointerId);const p=pos(e);cur=[p,p];SIG[k].push(cur);redraw()};
+ c.onpointermove=e=>{if(!cur)return;cur.push(pos(e));redraw()};
+ c.onpointerup=c.onpointercancel=()=>{cur=null};
+ $('clr_'+k).onclick=()=>{SIG[k]=[];redraw()}}
+pad('stu');pad('par');
+document.querySelectorAll('.ex button').forEach(b=>b.onclick=()=>{$('why').value=b.textContent});
+$('sname').addEventListener('blur',()=>{if(!$('stu').value)$('stu').value=$('sname').value});
+const sn=a=>a.map(st=>{const o=[];let lx=-99,ly=-99;st.forEach((p,i)=>{const x=Math.round(p[0]*1000),y=Math.round(p[1]*1000);
+ if(i==0||i==st.length-1||Math.hypot(x-lx,y-ly)>8){o.push(x,y);lx=x;ly=y}});return o});
+async function enc(o){const s=new Blob([JSON.stringify(o)]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+ const b=new Uint8Array(await new Response(s).arrayBuffer());let bin='';b.forEach(c=>bin+=String.fromCharCode(c));
+ return 'GS1.'+btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+$('go').onclick=async()=>{const v=id=>$(id).value.trim();
+ if(['sid','sname','tel','d1','d2','why','stu','par'].some(i=>!v(i))){msg('비어 있는 칸이 있어요.');return}
+ if(v('d2')<v('d1')){msg('종료일이 시작일보다 빠를 수 없어요.');return}
+ if(!SIG.stu.length||!SIG.par.length){msg('학생과 학부모 서명이 모두 필요해요.');return}
+ msg('');const code=await enc({a:v('sid'),b:v('sname'),c:v('tel'),d:v('stu'),e:v('par'),f:v('d1'),g:v('d2'),h:v('why'),s:sn(SIG.stu),p:sn(SIG.par)});
+ const text=`[결석신고서] ${v('sid')} ${v('sname')}\n${code}`;$('out').value=text;
+ if(navigator.share){try{await navigator.share({text});return}catch(e){}}
+ $('res').hidden=false;$('out').select()};
+$('cp').onclick=()=>{$('out').select();try{document.execCommand('copy');msg('')}catch(e){msg('코드를 길게 눌러 직접 복사해 주세요.')}};
+</script></body></html>
